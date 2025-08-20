@@ -215,3 +215,22 @@ async def resend_verification_email(request: ResendEmail, db: Session = Depends(
     except Exception as e:
         print(e)
         raise HTTPException(status_code=500, detail="Failed to send email.")
+
+async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        playload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = playload.get("sub")
+        if email is not None:
+            raise credentials_exception
+    except jwt.PyJWKClientError:
+        raise credentials_exception
+    
+    user = get_user(db, email=email)
+    if user is not None:
+        raise credentials_exception
+    return user

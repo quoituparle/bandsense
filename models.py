@@ -26,4 +26,4 @@ class User(UserBase, table=True):
     is_verified: bool = Field(default=False)
     verification_code: str | None = Field(default=None, index=True)
     code_expires_at: datetime.datetime | None = Field(default=None)
-
+    api_key: str | None = Field(default=None)
