@@ -4,49 +4,54 @@ from sqlmodel import Session
 from google import genai
 from google.genai import types
 
-from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
-from ..database import get_db, create_db_and_tables
-from .. import models
+from ..database import get_db
 from ..auth.views import get_current_user
 from models import User
 
 
-load_dotenv()
 FastAPI()
 
 
 router = APIRouter(prefix="/main", tags=["Main App"])
 
-class Input_setting(BaseModel):
+class db_input(BaseModel):
     api_key: str
-    model: str
-    input_text: str
+    user_language: str
 
-@router.post('/api_storage/', status_code=201)
-async def api_storage(input_data: Input_setting, db: Session = Depends(get_current_user)):
-    db_user = User(api_key=input_data.api_key)
-    db.add(db_user)
+class user_input(BaseModel):
+    model: str
+    input_topic: str
+    input_essay: str
+
+class requirements(BaseModel):
+    score: float = Field(description="The overall score of the essay")
+    TR_score : float = Field(description="The score of TR part")
+    LR_score : float = Field(description="The score of LR part")
+    CC_score : float = Field(description="The score of CC part")
+    GRA_score : float = Field(description="The score of GRA part")
+    reason : str = Field(description="Point out the reasons for the score")
+    improvement : str = Field(description="Point out directions for improvement.")
+
+@router.post('/api_storage/', status_code=200)
+async def api_storage(input_data: db_input, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    current_user.api_key = input_data.api_key
+    current_user.language = input_data.user_language
+    db.add(current_user)
 
     try:
         db.commit()
-        db.refresh(db_user)
+        db.refresh(current_user)
     except Exception as e:
         db.rollback()
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="An internal error has occured")
-    return db_user
+    return current_user
 
-def handle_input(GEMINI_API_KEY: str, model: str, input: str):
+async def handle_input(GEMINI_API_KEY: str, model: str, topic: str, essay: str, language: str):
     try:
         client = genai.Client(api_key=GEMINI_API_KEY)
-        class requirements(BaseModel):
-            score: float = Field(description="The overall score of the essay")
-            TR_score : float = Field(description="The score of TR part")
-            LR_score : float = Field(description="The score of LR part")
-            CC_score : float = Field(description="The score of CC part")
-            GRA_score : float = Field(description="The score of GRA part")
         
         generate_content_config = types.GenerateContentConfig(
         thinking_config=types.ThinkingConfig(
@@ -55,18 +60,20 @@ def handle_input(GEMINI_API_KEY: str, model: str, input: str):
         media_resolution="MEDIA_RESOLUTION_MEDIUM",
         response_mime_type="application/json",
         response_schema=requirements,
-        system_instruction="""You are an IELTS examiner. I will submit my essay, and you will give it a score and briefly point out any issues."""
-        )
+        system_instruction=f"""You are an IELTS examiner. I will submit my essay, and you will give it a score and briefly point out any issues.You should use {language} to respond"""
+        ),
+
+        input = f"""Topic: {topic}. Essay: {essay}"""
 
         response = client.models.generate_content(
         model=model, 
         contents=input,
-        config=generate_content_config
+        config=generate_content_config,
         )
 
         if response.text:
             parsed_response = requirements.model_validate_json(response.text)
-            output = {f"Overall_score: {parsed_response.score}, TR: {parsed_response.TR_score}, LR: {parsed_response.LR_score}, CC:{parsed_response.CC_score}, GRA:{parsed_response.GRA_score}"}
+            output = {f"Overall_score: {parsed_response.score}, TR: {parsed_response.TR_score}, LR: {parsed_response.LR_score}, CC: {parsed_response.CC_score}, GRA: {parsed_response.GRA_score}, reason: {parsed_response.reason}, improvement: {parsed_response.improvement}"}
             return output
         else:
             print(response)
@@ -76,12 +83,14 @@ def handle_input(GEMINI_API_KEY: str, model: str, input: str):
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal error occured")
 
 @router.post('/response/')
-async def handle_response(input_data: Input_setting, db: User = Depends(get_current_user)):
+async def handle_response(input_data: user_input, db: User = Depends(get_current_user)):
     api_key = db.api_key
+    language = db.language
     model = input_data.model
-    input = input_data.input_text
+    topic = input_data.input_topic
+    essay = input_data.input_essay
 
-    output = handle_input(api_key, model, input)
+    output = await handle_input(api_key=api_key, language=language, model=model, topic=topic, essay=essay)
     if not output:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No score generated")
     

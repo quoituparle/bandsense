@@ -9,6 +9,7 @@ class UserBase(SQLModel):
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = Field(default=None, max_length=255)
+    
 
 
 class UserRegister(SQLModel):
@@ -27,3 +28,4 @@ class User(UserBase, table=True):
     verification_code: str | None = Field(default=None, index=True)
     code_expires_at: datetime.datetime | None = Field(default=None)
     api_key: str | None = Field(default=None)
+    language: str

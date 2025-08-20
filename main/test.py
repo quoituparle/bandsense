@@ -19,6 +19,10 @@ class requirements(BaseModel):
     LR_score : float = Field(description="The score of LR part")
     CC_score : float = Field(description="The score of CC part")
     GRA_score : float = Field(description="The score of GRA part")
+    reason : str = Field(description="Point out the reasons for the score")
+    improvement : str = Field(description="Point out directions for improvement.")
+
+language = "Chinese"
 
 generate_content_config = types.GenerateContentConfig(
     thinking_config=types.ThinkingConfig(
@@ -27,7 +31,7 @@ generate_content_config = types.GenerateContentConfig(
     media_resolution="MEDIA_RESOLUTION_MEDIUM",
     response_mime_type="application/json",
     response_schema=requirements,
-    system_instruction="""You are an IELTS examiner. I will submit my essay, and you will give it a score and briefly point out any issues."""
+    system_instruction="""You are an IELTS examiner. I will submit my essay, and you will give it a score and briefly point out any issues. Attention: Use {language} to respond"""
 )
 
 input = f"""In some countries, the number of people visiting art galleries is reducing. What are the reasons for this? How can we solve this problem?
@@ -52,3 +56,5 @@ if response.text:
     parsed_response = requirements.model_validate_json(response.text)
     print(f"分数: {parsed_response.score}")
     print(f"TR: {parsed_response.TR_score}, LR:{parsed_response.LR_score}, CC:{parsed_response.CC_score}, GRA:{parsed_response.GRA_score}")
+    print(f"理由: {parsed_response.reason}")
+    print(f"改进方向: {parsed_response.improvement}")
