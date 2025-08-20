@@ -75,3 +75,14 @@ def handle_input(GEMINI_API_KEY: str, model: str, input: str):
         print(e)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal error occured")
 
+@router.post('/response/')
+async def handle_response(input_data: Input_setting, db: User = Depends(get_current_user)):
+    api_key = db.api_key
+    model = input_data.model
+    input = input_data.input_text
+
+    output = handle_input(api_key, model, input)
+    if not output:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No score generated")
+    
+    return output
