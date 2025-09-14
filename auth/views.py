@@ -4,12 +4,12 @@ import string
 
 from fastapi.responses import JSONResponse
 import jwt, uuid, os
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, HTTPException, status, APIRouter
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
 
-from models import UserRegister, UserLogin, User, UserBase
+from ..models import UserRegister, UserLogin, User, UserBase
 
 from sqlmodel import Session, select
 from sqlalchemy.exc import IntegrityError
@@ -21,6 +21,8 @@ from typing import List
 from dotenv import load_dotenv
 
 from ..database import get_db, create_db_and_tables
+
+load_dotenv()
 
 
 SECRET_KEY =os.getenv("SECRET_KEY")
@@ -51,13 +53,13 @@ conf = ConnectionConfig(
 )
 fm = FastMail(conf)
 
-app = FastAPI()
+router = APIRouter()
 
 def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-@app.on_event("startup")
+@router.on_event("startup")
 def on_startup():
     create_db_and_tables()
 
@@ -68,7 +70,7 @@ class UserRead(UserBase):
 def generate_verification_code(length: int=6):
     return "".join(random.choices(string.digits, k=length))
 
-@app.post('/register/', response_model=UserRead, status_code=201)
+@router.post('/register/', response_model=UserRead, status_code=201)
 async def Registration(user_data: UserRegister, db: Session = Depends(get_db)):
     existing_user = get_user(db, user_data.email)
     if existing_user and existing_user.is_verified:
@@ -119,7 +121,7 @@ class VerificationData(BaseModel):
     email: EmailStr
     code: str
 
-@app.post('/verify-email/')
+@router.post('/verify-email/')
 async def verify_email(data: VerificationData, db: Session = Depends(get_db)):
     user = get_user(db, data.email)
 
@@ -165,7 +167,7 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-@app.post('/login/')
+@router.post('/login/')
 async def Login(login_data: UserLogin, db: Session = Depends(get_db)):
     user = authenticate_user(db, login_data.email, login_data.password)
     if not user:
@@ -188,7 +190,7 @@ async def Login(login_data: UserLogin, db: Session = Depends(get_db)):
 class ResendEmail(BaseModel):
     email: EmailStr
 
-@app.post('/resend-verification-email/')
+@router.post('/resend-verification-email/')
 async def resend_verification_email(request: ResendEmail, db: Session = Depends(get_db)):
     user = get_user(db, request.email)
     if not user:

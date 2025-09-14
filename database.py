@@ -8,6 +8,8 @@ password = os.getenv("password")
 
 DATABASE_URL = f"mysql+pymysql://root:{password}@127.0.0.1/USERDB"
 
+print(DATABASE_URL)
+
 engine = create_engine(DATABASE_URL, echo=True)
 
 
