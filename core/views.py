@@ -25,7 +25,7 @@ class user_input(BaseModel):
 class user_info(BaseModel):
     user_email: str
     api_key: str | None
-    language: str
+    language: str | None
 
 class requirements(BaseModel):
     score: float = Field(description="The overall score of the essay")
@@ -114,7 +114,7 @@ async def get_user_info(current_user: User = Depends(get_current_user)):
     """
     if not current_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
-    
+
     return user_info(user_email=current_user.email, api_key=current_user.email, language=current_user.language)
 
 @router.delete('/user/delete')
