@@ -101,9 +101,6 @@ async def handle_response(input_data: user_input, current_user: User = Depends(g
     topic = input_data.input_topic
     essay = input_data.input_essay
 
-    print(f"API: {api_key}")
-    print(f"Language: {language}")
-
     if not current_user:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")    
 
