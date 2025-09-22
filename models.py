@@ -41,8 +41,12 @@ class UserAdmin(ModelView, model=User):
     can_create = True
     can_edit = True
     can_delete = True
-    can_view_details = True
     name = "User"
     name_plural = "Users"
     icon = "fa-solid fa-user"
     identity = "user"
+
+class TopicAdmin(ModelView, model=Topic):
+    column_list = [Topic.essay_topic, Topic.essay_topic_id]
+    form_columns = [Topic.essay_topic]
+    column_details_exclude_list = [Topic.published_essay, Topic.published_score] 
