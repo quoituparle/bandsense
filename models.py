@@ -21,7 +21,7 @@ class UserLogin(SQLModel):
     password: str = Field(min_length=8, max_length=40)
 
 class User(UserBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid5, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     is_verified: bool = Field(default=False)
     verification_code: str | None = Field(default=None, index=True)
@@ -29,14 +29,14 @@ class User(UserBase, table=True):
     api_key: str | None = Field(default=None)
     language: str
 
-class Topic(SQLModel):
+class Topic(SQLModel, table=True):
+    essay_topic_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     essay_topic: str
-    essay_topic_id: uuid.UUID = Field(default_factory=uuid.uuid5)
     published_essay: str | None
     published_score: float | None
     published_date: datetime.datetime | None = Field(default=None)
 
-class UserAdmin(ModelView, model=User):
+class UserAdmin( ModelView, model=User):
     column_list = [User.id, User.full_name, User.email]
     can_create = True
     can_edit = True
@@ -49,4 +49,3 @@ class UserAdmin(ModelView, model=User):
 class TopicAdmin(ModelView, model=Topic):
     column_list = [Topic.essay_topic, Topic.essay_topic_id]
     form_columns = [Topic.essay_topic]
-    column_details_exclude_list = [Topic.published_essay, Topic.published_score] 

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import views as auth_views
 from .core import views as main_views
+from .admin import admin as admin_app
 
 app = FastAPI()
 
@@ -28,3 +29,4 @@ app.add_middleware(
 
 app.include_router(auth_views.router)
 app.include_router(main_views.router)
+app.include_router(admin_app.router)

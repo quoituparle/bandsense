@@ -1,18 +1,15 @@
 import os
 from dotenv import load_dotenv
 
-
-from fastapi import  status, HTTPException, APIRouter, Depends
-from sqlmodel import Session, select
-from pydantic import BaseModel, Field
+from fastapi import APIRouter
+from sqlmodel import Session
 
 from ..database import get_db
-from ..auth.views import get_current_user, get_user
-from ..models import User, Topic
+from ..auth.views import get_user
 
 load_dotenv()
-
 router = APIRouter(prefix="/admin", tags=["Admin App"])
+
 
 def make_admin(db: Session, email: str):
     update_user = get_user(db, email)
