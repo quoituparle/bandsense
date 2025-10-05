@@ -3,7 +3,7 @@ import uuid
 
 from pydantic import EmailStr
 from sqlmodel import Field, SQLModel
-from sqladmin import ModelView
+from sqladmin import ModelView, expose, BaseView
 from starlette.requests import Request
 
 
@@ -54,3 +54,7 @@ class UserAdmin( ModelView, model=User):
 class TopicAdmin(ModelView, model=Topic):
     column_list = [Topic.essay_topic, Topic.essay_topic_id]
     form_columns = [Topic.essay_topic]
+    
+    def is_accessible(self, request: Request) -> bool:
+        return request.session.get("is_superuser", False) 
+

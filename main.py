@@ -35,6 +35,6 @@ app.include_router(admin_app.router)
 app.include_router(auth_views.router)
 app.include_router(main_views.router)
 
-admin = Admin(app=app, engine=engine, authentication_backend=authentication_backend, templates_dir="admin_templates")
+admin = Admin(templates_dir="my_templates", app=app, engine=engine, authentication_backend=authentication_backend)
 admin.add_view(UserAdmin)
 admin.add_view(TopicAdmin)

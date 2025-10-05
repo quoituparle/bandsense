@@ -34,16 +34,29 @@ db_session = next(get_db()) # next() function is vital because the get_db() use 
 make_admin(db_session, email=os.getenv('admin_email'))
 
 class AdminAuth(AuthenticationBackend):
-    async def login(self, request: Request, db: Session = Depends(get_db)) -> bool:
+    async def login(self, request: Request) -> bool:
         form = await request.form()
         email, password = form["email"], form["password"]
 
-        user = authenticate_user(db=db, email=email, password=password)
+        db_gen = get_db()
+        db: Session = next(db_gen)
+        try:
+            user = authenticate_user(db=db, email=email, password=password)
+        finally:
+            try:
+                next(db_gen)
+            except StopIteration:
+                pass
+
         if not user:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        if user.is_superuser is not True:
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Your not a admin user")
 
-        request.session.update({"token": os.getenv('token')})
-
+        request.session.update({
+            "token": os.getenv("token"),
+            "is_superuser": True 
+            })
         return True
 
 
