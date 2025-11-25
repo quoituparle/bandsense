@@ -58,9 +58,6 @@ def get_password_hash(password):
     return pwd_context.hash(password)
 
 
-@router.on_event("startup")
-def on_startup():
-    create_db_and_tables()
 
 class UserRead(UserBase):
     id: uuid.UUID

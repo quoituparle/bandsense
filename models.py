@@ -30,14 +30,14 @@ class User(UserBase, table=True):
     verification_code: str | None = Field(default=None, index=True)
     code_expires_at: datetime.datetime | None = Field(default=None)
     api_key: str | None = Field(default=None)
-    language: str
+    language: str | None = Field(default="English")
     essays: List["Essay"] = Relationship(back_populates="author")
 
 class Essay(SQLModel, table=True):
     essay_id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     user_id: uuid.UUID = Field(foreign_key="user.id")
     author: "User" = Relationship(back_populates="essays")
-    published_date: datetime.datetime = Field(default_factory=datetime.timezone.utc)
+    published_date: datetime.datetime = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc))
     content: str
     score: str
     topic_id: uuid.UUID = Field(foreign_key="topic.topic_id")   
