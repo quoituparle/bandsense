@@ -193,6 +193,7 @@ async def create_essay(
         GRA=essay_data.GRA,
         reason=essay_data.reason,
         improvement=essay_data.improvement,
+        content=essay_data.content,
         user_id=current_user.id,
         topic_id=topic_id
     )
