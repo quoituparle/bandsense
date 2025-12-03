@@ -15,14 +15,14 @@ from .admin.admin import AdminAuthProvider
 app = FastAPI()
 
 origins = [
-    "https://bandify-dev.vercel.app",
-    "https://bandify-dev.vercel.app/api/login/",
-    "https://bandify-dev.vercel.app/api/register/",
-    "https://bandify-dev.vercel.app/api/main/user/me",
-    "https://bandify-dev.vercel.app/api/main/user/storage",
-    "https://bandify-dev.vercel.app/api/main/response",
-    "https://bandify-dev.vercel.app/api/main/user/delete",
-    "https://bandify-dev.vercel.app/api/main/user/info"
+    "https://bandsense.vercel.app/",
+    "https://bandsense.vercel.app/api/login/",
+    "https://bandsense.vercel.app/api/register/",
+    "https://bandsense.vercel.app/api/main/user/me",
+    "https://bandsense.vercel.app/api/main/user/storage",
+    "https://bandsense.vercel.app/api/main/response",
+    "https://bandsense.vercel.app/api/main/user/delete",
+    "https://bandsense.vercel.app/api/main/user/info"
 
 ]
 
