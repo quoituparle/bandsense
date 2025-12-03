@@ -4,13 +4,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-password = os.getenv("password")
+sqlite_file_name = "database.db"
+sqlite_url = f"sqlite:///{sqlite_file_name}"
+print(sqlite_url)
 
-DATABASE_URL = f"mysql+pymysql://root:{password}@127.0.0.1/USERDB"
-
-print(DATABASE_URL)
-
-engine = create_engine(DATABASE_URL, echo=True)
+engine = create_engine(sqlite_url, echo=True, connect_args={"check_same_thread": False})
 
 
 def get_db():
